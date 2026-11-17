@@ -1,12 +1,13 @@
+
+import os
 import pandas as pd
-from pathlib import Path
 
-# Find the project directory and raw data folder
-PROJECT_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = PROJECT_DIR / "data" / "raw"
+# Project paths
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RAW_DIR = os.path.join(ROOT, "data", "raw")
 
-# List of datasets required by ShopFlow
-REQUIRED_FILES = [
+# Required datasets
+FILES = [
     "olist_orders_dataset.csv",
     "olist_order_items_dataset.csv",
     "olist_customers_dataset.csv",
@@ -20,33 +21,41 @@ REQUIRED_FILES = [
 
 
 def extract_data():
+
     datasets = {}
 
-    print("Starting data extraction...\n")
+    print("\n========== DATA EXTRACTION ==========\n")
 
-    for filename in REQUIRED_FILES:
-        file_path = DATA_DIR / filename
+    for file in FILES:
 
-        if not file_path.exists():
-            raise FileNotFoundError(
-                f"Missing dataset: {filename}"
-            )
+        path = os.path.join(RAW_DIR, file)
 
-        df = pd.read_csv(file_path)
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Missing dataset: {file}")
 
-        dataset_name = filename.replace(
-            ".csv", ""
-        ).replace("olist_", "")
+        # Preserve ZIP codes as text
+        dtype = {}
 
-        datasets[dataset_name] = df
+        if "customers" in file:
+            dtype["customer_zip_code_prefix"] = "string"
 
-        print(
-            f"Loaded {filename} | "
-            f"Rows: {len(df)} | "
-            f"Columns: {len(df.columns)}"
-        )
+        elif "sellers" in file:
+            dtype["seller_zip_code_prefix"] = "string"
 
-    print("\nData extraction completed!")
+        elif "geolocation" in file:
+            dtype["geolocation_zip_code_prefix"] = "string"
+
+        df = pd.read_csv(path, dtype=dtype)
+
+        # Match the concise keys expected by the Silver transformations.
+        name = file.removesuffix(".csv").removeprefix("olist_")
+        name = name.removesuffix("_dataset")
+
+        datasets[name] = df
+
+        print(f"{name}: {len(df)} rows, {len(df.columns)} columns")
+
+    print("\nExtraction completed successfully!")
 
     return datasets
 

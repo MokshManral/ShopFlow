@@ -86,11 +86,11 @@ ShopFlow/
 │
 ├── etl/
 │   ├── 01_extract.py
-│   ├── 02_transform_orders.py
-│   ├── ...
-│   ├── 20_build_gold_monthly_sales.py
-│   ├── 21_build_gold_reviews.py
-│   └── 22_validate_gold.py
+│   ├── 02_silver_transform.py
+│   ├── 03_silver_validate.py
+│   ├── 04_gold_build.py
+│   ├── 05_gold_validate.py
+│   └── 06_main.py            # Runs the complete pipeline
 │
 ├── notebooks/
 │
@@ -208,19 +208,17 @@ data/raw/
 
 ### 5. Run the ETL pipeline
 
-Execute the scripts in sequence:
+Run the complete pipeline from the ETL folder. Extraction, transformation,
+validation, and pipeline orchestration are all maintained in `etl/`.
 
 ```bash
-python etl/01_extract.py
+python etl/06_main.py
 ```
 
-Then run the Silver transformation and validation scripts, followed by the Gold transformation scripts and final audit:
-
-```bash
-python etl/22_validate_gold.py
-```
-
-Make sure the preceding ETL scripts have completed successfully before running the final audit.
+The pipeline extracts the raw CSVs, builds and validates the Silver layer, builds
+the Gold analytics, and validates all Gold outputs. Use the individual scripts
+in `etl/` only when you want to run a single stage; use `06_main.py` for the
+normal full workflow.
 
 ## Planned Improvements
 
